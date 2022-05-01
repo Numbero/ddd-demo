@@ -1,15 +1,20 @@
 package com.example.ddd.infra.repository.dao;
 
-import com.example.ddd.infra.repository.mapper.UserMapper;
-import org.springframework.stereotype.Component;
+import com.example.ddd.infra.repository.model.UserDO;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
-import javax.annotation.Resource;
+import java.util.List;
 
-@Component
-public class UserDAO {
+@Mapper
+public interface UserDAO {
 
-    @Resource
-    private UserMapper userMapper;
+    int insert(UserDO record);
 
+    void deleteUserById(@Param("id") Long id);
+
+    void updateUser(UserDO user);
+
+    List<UserDO> selectUsers();
 
 }

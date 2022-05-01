@@ -1,4 +1,4 @@
-package com.example.ddd.infra.utils;
+package com.example.ddd.common.util;
 
 import java.nio.ByteBuffer;
 import java.util.Base64;
