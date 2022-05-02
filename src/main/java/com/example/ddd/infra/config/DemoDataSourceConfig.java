@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -49,25 +50,37 @@ public class DemoDataSourceConfig {
         return new HikariDataSource(config);
     }
 
+    @Bean("demoPlatformTransactionManager")
+    public PlatformTransactionManager getPlatformTransactionManager(@Qualifier("demoDataSource") DataSource dataSource){
+        return new DataSourceTransactionManager(dataSource);
+    }
+
     @Bean("demoSqlSessionFactory")
     public SqlSessionFactory getSqlSessionFactory(@Qualifier("demoDataSource") DataSource dataSource,
                                                      @Value("classpath:mybatis/mybatis-config-demo.xml") Resource configLocation,
                                                      @Value("classpath:mybatis/mapper/demo/*.xml") Resource[] mapperLocations) throws Exception {
-        SqlSessionFactoryBean bean = new SqlSessionFactoryBean();
-        bean.setDataSource(dataSource);
-        bean.setConfigLocation(configLocation);
-        bean.setMapperLocations(mapperLocations);
-        return bean.getObject();
+        SqlSessionFactoryBean factory = new SqlSessionFactoryBean();
+        factory.setDataSource(dataSource);
+        // TODO 此处无法将config成功注入
+//        factory.setConfigLocation(configLocation);
+        factory.setMapperLocations(mapperLocations);
+
+        /*设置实体类映射规则: 下划线 -> 驼峰*/
+        org.apache.ibatis.session.Configuration configuration = new org.apache.ibatis.session.Configuration();
+        configuration.setMapUnderscoreToCamelCase(true);
+        factory.setConfiguration(configuration);
+
+//        Resource resource = new PathMatchingResourcePatternResolver()
+//                .getResource("classpath:mybatis/mybatis-config-demo.xml");
+//        Resource[] resources = new PathMatchingResourcePatternResolver()
+//                .getResources("classpath:mybatis/mybatis-config-demo.xml");
+
+        return factory.getObject();
     }
 
     @Bean("demoSqlSessionTemplate")
     public SqlSessionTemplate getSqlSessionTemplate(@Qualifier("demoSqlSessionFactory") SqlSessionFactory sqlSessionFactory){
         return new SqlSessionTemplate(sqlSessionFactory);
-    }
-
-    @Bean("demoPlatformTransactionManager")
-    public PlatformTransactionManager getPlatformTransactionManager(@Qualifier("demoDataSource") DataSource dataSource){
-        return new DataSourceTransactionManager(dataSource);
     }
 
 }
